@@ -6,7 +6,7 @@ import datetime
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, cint, date_diff, format_date, get_url_to_list, getdate
+from frappe.utils import add_days, cint, date_diff, format_date, flt, get_url_to_list, getdate
 
 from hrms.hr.utils import (
 	create_additional_leave_ledger_entry,
@@ -29,7 +29,17 @@ class CompensatoryLeaveRequest(Document):
 				frappe.throw(_("Half Day Date should be in between Work From Date and Work End Date"))
 		validate_overlap(self, self.work_from_date, self.work_end_date)
 		self.validate_holidays()
-		self.validate_attendance()
+
+		# Check if custom policy-based validation is enabled
+		policy = frappe.get_single("Policy Configuration")
+		if policy.enable_custom_comp_off_validation:
+			# Custom validation: use working hours instead of attendance status
+			if self._submitted_attendance_exists():
+				self._validate_working_hours(policy)
+		else:
+			# Standard HRMS validation
+			self.validate_attendance()
+
 		if not self.leave_type:
 			frappe.throw(_("Leave Type is mandatory"))
 
@@ -56,6 +66,56 @@ class CompensatoryLeaveRequest(Document):
 
 		if len(attendance_records) < date_diff(self.work_end_date, self.work_from_date) + 1:
 			frappe.throw(_("You are not present all day(s) between compensatory leave request days"))
+
+	def _submitted_attendance_exists(self):
+		"""Check if attendance records exist for the date range (custom validation helper)"""
+		return bool(
+			frappe.db.count(
+				"Attendance",
+				{
+					"employee": self.employee,
+					"attendance_date": ["between", [self.work_from_date, self.work_end_date]],
+					"status": ["in", ["Present", "Work From Home", "Half Day"]],
+					"docstatus": 1,
+				},
+			)
+		)
+
+	def _validate_working_hours(self, policy):
+		"""Custom validation: Check minimum working hours instead of attendance status"""
+		attendance_records = frappe.get_all(
+			"Attendance",
+			filters={
+				"employee": self.employee,
+				"attendance_date": ["between", [self.work_from_date, self.work_end_date]],
+				"status": ["in", ["Present", "Work From Home", "Half Day"]],
+				"docstatus": 1,
+			},
+			fields=["attendance_date", "working_hours"],
+		)
+
+		comp_off_type = _("Half Day") if self.half_day else _("Full Day")
+		min_hours = flt(
+			policy.minimum_hours_for_half_day_comp_off
+			if self.half_day
+			else policy.minimum_hours_for_full_day_comp_off
+		)
+
+		for record in attendance_records:
+			working_hours = flt(record.working_hours)
+			if working_hours < min_hours:
+				frappe.throw(
+					_(
+						"{0} Compensatory Off requires a minimum of {1} working hour(s). "
+						"Attendance on {2} shows {3} working hour(s)."
+					).format(
+						comp_off_type,
+						frappe.bold(min_hours),
+						frappe.bold(format_date(record.attendance_date)),
+						frappe.bold(working_hours),
+					),
+					title=_("Insufficient Working Hours"),
+				)
 
 	def validate_holidays(self):
 		holidays = get_holiday_dates_for_employee(self.employee, self.work_from_date, self.work_end_date)
