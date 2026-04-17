@@ -27,29 +27,36 @@ class CompensatoryLeaveRequest(Document):
 				frappe.throw(_("Half Day Date is mandatory"))
 			if not getdate(self.work_from_date) <= getdate(self.half_day_date) <= getdate(self.work_end_date):
 				frappe.throw(_("Half Day Date should be in between Work From Date and Work End Date"))
-		try:
+		existing_clr = frappe.db.sql(
+			"""
+			SELECT docstatus FROM `tabCompensatory Leave Request`
+			WHERE name != %s
+			AND employee = %s
+			AND docstatus < 2
+			AND (
+				work_from_date BETWEEN %s AND %s
+				OR work_end_date BETWEEN %s AND %s
+				OR (work_from_date < %s AND work_end_date > %s)
+			)
+			ORDER BY docstatus DESC
+			LIMIT 1
+			""",
+			(
+				self.name or "New Compensatory Leave Request",
+				self.employee,
+				self.work_from_date, self.work_end_date,
+				self.work_from_date, self.work_end_date,
+				self.work_from_date, self.work_end_date,
+			),
+		)
+		if existing_clr:
+			date_str = frappe.bold(frappe.format(self.work_from_date, {"fieldtype": "Date"}))
+			if existing_clr[0][0] == 1:
+				frappe.throw(_("Compensatory request already approved for {0}.").format(date_str))
+			else:
+				frappe.throw(_("Compensatory request already exists for {0}.").format(date_str))
+		else:
 			validate_overlap(self, self.work_from_date, self.work_end_date)
-		except frappe.ValidationError as e:
-			if "A Compensatory Leave Request exists between" in str(e):
-				frappe.message_log.pop()
-				existing_status = frappe.db.get_value(
-					"Compensatory Leave Request",
-					{
-						"employee": self.employee,
-						"work_from_date": ["<=", self.work_end_date],
-						"work_end_date": [">=", self.work_from_date],
-						"docstatus": ["in", [0, 1]],
-						"name": ["!=", self.name],
-					},
-					"docstatus",
-					order_by="docstatus desc",
-				)
-				date_str = frappe.bold(frappe.format(self.work_from_date, {"fieldtype": "Date"}))
-				if existing_status == 1:
-					frappe.throw(_("Compensatory request already approved for {0}.").format(date_str))
-				else:
-					frappe.throw(_("Compensatory request already exists for {0}.").format(date_str))
-			raise
 		self.validate_holidays()
 		self.validate_attendance()
 		if not self.leave_type:
