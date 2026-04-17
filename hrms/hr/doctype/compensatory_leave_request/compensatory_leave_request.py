@@ -52,9 +52,9 @@ class CompensatoryLeaveRequest(Document):
 		if existing_clr:
 			date_str = frappe.bold(frappe.format(self.work_from_date, {"fieldtype": "Date"}))
 			if existing_clr[0][0] == 1:
-				frappe.throw(_("Compensatory request already approvedd for {0}.").format(date_str))
+				frappe.throw(_("Compensatory request already approved for {0}.").format(date_str))
 			else:
-				frappe.throw(_("Compensatory request already existss for {0}.").format(date_str))
+				frappe.throw(_("Compensatory request already exists for {0}.").format(date_str))
 		else:
 			validate_overlap(self, self.work_from_date, self.work_end_date)
 		self.validate_holidays()
