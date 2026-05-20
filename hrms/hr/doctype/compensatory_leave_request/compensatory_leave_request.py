@@ -79,12 +79,12 @@ class CompensatoryLeaveRequest(Document):
 		if half_days and (not self.half_day or getdate(self.half_day_date) not in half_days):
 			frappe.throw(
 				_(
-					"You were only present for Half Day on {}. Cannot apply for a full day compensatory leave"
+					"You were only present for Half Day on {}. Cannot apply for a full day compensatory request"
 				).format(", ".join([frappe.bold(format_date(half_day)) for half_day in half_days]))
 			)
 
 		if len(attendance_records) < date_diff(self.work_end_date, self.work_from_date) + 1:
-			frappe.throw(_("You are not present all day(s) between compensatory leave request days"))
+			frappe.throw(_("You are not present all day(s) between compensatory request days"))
 
 	def validate_holidays(self):
 		holidays = get_holiday_dates_for_employee(self.employee, self.work_from_date, self.work_end_date)
@@ -123,7 +123,7 @@ class CompensatoryLeaveRequest(Document):
 			self.db_set("leave_allocation", leave_allocation.name)
 		else:
 			comp_leave_valid_from = frappe.bold(format_date(comp_leave_valid_from))
-			msg = _("This compensatory leave will be applicable from {0}.").format(comp_leave_valid_from)
+			msg = _("This compensatory request will be applicable from {0}.").format(comp_leave_valid_from)
 			msg += " " + _(
 				"Currently, there is no {0} leave period for this date to create/update leave allocation."
 			).format(frappe.bold(_("active")))
