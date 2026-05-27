@@ -3,7 +3,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, flt, get_link_to_form
+from frappe.utils import cint, flt, get_link_to_form  # get_link_to_form used in commented-out validate_duplicate_leave_adjustment
 
 from hrms.hr.doctype.leave_application.leave_application import get_leave_balance_on
 from hrms.hr.doctype.leave_ledger_entry.leave_ledger_entry import create_leave_ledger_entry
@@ -16,7 +16,17 @@ class LeaveAdjustment(Document):
 		self.leaves_to_adjust = flt(self.leaves_to_adjust, precision)
 
 	def before_save(self):
+		self.set_allocated_leaves()
 		self.set_leaves_after_adjustment()
+
+	def set_allocated_leaves(self):
+		# Using live ledger balance instead of fetch_from leave_allocation.total_leaves_allocated
+		# because total_leaves_allocated is a static field set at allocation time and does not
+		# account for previous adjustments — causing leaves_after_adjustment to be computed
+		# incorrectly when multiple adjustments exist for the same allocation.
+		self.allocated_leaves = get_leave_balance_on(
+			employee=self.employee, leave_type=self.leave_type, date=self.posting_date
+		)
 
 	def set_leaves_after_adjustment(self):
 		if self.adjustment_type == "Allocate":
@@ -25,23 +35,28 @@ class LeaveAdjustment(Document):
 			self.leaves_after_adjustment = flt(self.allocated_leaves) - flt(self.leaves_to_adjust)
 
 	def validate(self):
-		self.validate_duplicate_leave_adjustment()
+		# Commented out to allow multiple adjustments per allocation.
+		# Original restriction was in place because allocated_leaves was fetched from the static
+		# total_leaves_allocated field on Leave Allocation, making leaves_after_adjustment incorrect
+		# for subsequent adjustments. Now that allocated_leaves reads from the live ledger balance,
+		# multiple adjustments per allocation are safe and intentionally supported.
+		# self.validate_duplicate_leave_adjustment()
 		self.validate_non_zero_adjustment()
 		self.validate_over_allocation()
 		self.validate_leave_balance()
 
-	def validate_duplicate_leave_adjustment(self):
-		duplicate_adjustment = frappe.db.exists(
-			"Leave Adjustment",
-			{"employee": self.employee, "leave_allocation": self.leave_allocation, "docstatus": 1},
-		)
-		if duplicate_adjustment:
-			frappe.throw(
-				title=_("Duplicate Leave Adjustment"),
-				msg=_(
-					"Leave Adjustment for this allocation already exists: {0}. Please amend existing adjustment."
-				).format(get_link_to_form("Leave Adjustment", duplicate_adjustment)),
-			)
+	# def validate_duplicate_leave_adjustment(self):
+	# 	duplicate_adjustment = frappe.db.exists(
+	# 		"Leave Adjustment",
+	# 		{"employee": self.employee, "leave_allocation": self.leave_allocation, "docstatus": 1},
+	# 	)
+	# 	if duplicate_adjustment:
+	# 		frappe.throw(
+	# 			title=_("Duplicate Leave Adjustment"),
+	# 			msg=_(
+	# 				"Leave Adjustment for this allocation already exists: {0}. Please amend existing adjustment."
+	# 			).format(get_link_to_form("Leave Adjustment", duplicate_adjustment)),
+	# 		)
 
 	def validate_non_zero_adjustment(self):
 		if self.leaves_to_adjust == 0:
