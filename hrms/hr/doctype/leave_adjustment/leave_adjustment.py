@@ -4,6 +4,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, flt, get_link_to_form  # get_link_to_form used in commented-out validate_duplicate_leave_adjustment
+from frappe.query_builder.functions import Sum
 
 from hrms.hr.doctype.leave_application.leave_application import get_leave_balance_on
 from hrms.hr.doctype.leave_ledger_entry.leave_ledger_entry import create_leave_ledger_entry
@@ -94,9 +95,11 @@ class LeaveAdjustment(Document):
 
 	def on_submit(self):
 		self.create_leave_ledger_entry(submit=True)
+		update_effective_allocation(self.leave_allocation)
 
 	def on_cancel(self):
 		self.create_leave_ledger_entry(submit=False)
+		update_effective_allocation(self.leave_allocation)
 
 	def create_leave_ledger_entry(self, submit):
 		is_lwp = frappe.db.get_value("Leave Type", self.leave_type, "is_lwp")
@@ -110,6 +113,43 @@ class LeaveAdjustment(Document):
 			is_lwp=is_lwp,
 		)
 		create_leave_ledger_entry(self, args, submit)
+
+
+def update_effective_allocation(leave_allocation):
+	"""
+	Recomputes and stores effective_allocation on the Leave Allocation document by summing
+	all submitted allocation and adjustment ledger entries tied to this allocation.
+
+	Always recomputed from the ledger (never incremented/decremented) so it stays correct
+	across multiple adjustments and cancellations.
+	"""
+	LedgerEntry = frappe.qb.DocType("Leave Ledger Entry")
+	LeaveAdjustment = frappe.qb.DocType("Leave Adjustment")
+
+	result = (
+		frappe.qb.from_(LedgerEntry)
+		.left_join(LeaveAdjustment)
+		.on(
+			(LedgerEntry.transaction_name == LeaveAdjustment.name)
+			& (LedgerEntry.transaction_type == "Leave Adjustment")
+		)
+		.select(Sum(LedgerEntry.leaves))
+		.where(LedgerEntry.docstatus == 1)
+		.where(
+			(
+				(LedgerEntry.transaction_type == "Leave Allocation")
+				& (LedgerEntry.transaction_name == leave_allocation)
+			)
+			| (
+				(LedgerEntry.transaction_type == "Leave Adjustment")
+				& (LeaveAdjustment.leave_allocation == leave_allocation)
+			)
+		)
+		.run()
+	)
+
+	effective = flt(result[0][0]) if result and result[0][0] else 0
+	frappe.db.set_value("Leave Allocation", leave_allocation, "effective_allocation", effective)
 
 
 @frappe.whitelist()
