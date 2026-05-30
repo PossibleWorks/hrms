@@ -29,7 +29,7 @@ frappe.ui.form.on("Shift Location", {
 	},
 });
 
-frappe.ui.form.on("Shift Checkin Zone", {
+frappe.ui.form.on("Shift Location Zone", {
 	fetch_geolocation: (frm, cdt, cdn) => {
 		if (!navigator.geolocation) {
 			frappe.msgprint({
