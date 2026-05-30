@@ -116,18 +116,45 @@ class EmployeeCheckin(Document):
 		if not assignment_locations:
 			return
 
-		checkin_radius, latitude, longitude = frappe.db.get_value(
-			"Shift Location", assignment_locations[0], ["checkin_radius", "latitude", "longitude"]
-		)
-		if checkin_radius <= 0:
+		shift_location_name = assignment_locations[0]
+		shift_location = frappe.get_doc("Shift Location", shift_location_name)
+
+		# Build list of all zones to check: primary zone + additional zones
+		zones = []
+		if shift_location.checkin_radius and shift_location.checkin_radius > 0:
+			zones.append({
+				"label": shift_location.location_name or shift_location_name,
+				"latitude": shift_location.latitude,
+				"longitude": shift_location.longitude,
+				"checkin_radius": shift_location.checkin_radius,
+			})
+
+		for zone in shift_location.get("additional_zones") or []:
+			if zone.checkin_radius and zone.checkin_radius > 0 and zone.latitude and zone.longitude:
+				zones.append({
+					"label": zone.label or zone.name,
+					"latitude": zone.latitude,
+					"longitude": zone.longitude,
+					"checkin_radius": zone.checkin_radius,
+				})
+
+		if not zones:
 			return
 
-		distance = get_distance_between_coordinates(latitude, longitude, self.latitude, self.longitude)
-		if distance > checkin_radius:
-			frappe.throw(
-				_("You must be within {0} meters of your shift location to check in.").format(checkin_radius),
-				exc=CheckinRadiusExceededError,
+		# Allow check-in if within radius of ANY zone
+		for zone in zones:
+			distance = get_distance_between_coordinates(
+				zone["latitude"], zone["longitude"], self.latitude, self.longitude
 			)
+			if distance <= zone["checkin_radius"]:
+				return
+
+		# Outside all zones — throw with the primary zone's radius for context
+		primary_radius = zones[0]["checkin_radius"]
+		frappe.throw(
+			_("You must be within {0} meters of your shift location to check in.").format(primary_radius),
+			exc=CheckinRadiusExceededError,
+		)
 
 
 @frappe.whitelist()
