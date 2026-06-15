@@ -82,13 +82,14 @@ def send_exit_questionnaire(interviews):
 		template = frappe.get_doc("Email Template", template_name)
 
 		if email:
-			frappe.sendmail(
-				recipients=email,
-				subject=template.subject,
-				message=frappe.render_template(template.response, context),
-				reference_doctype=interview.doctype,
-				reference_name=interview.name,
-			)
+			# Email sending disabled
+			# frappe.sendmail(
+			# 	recipients=email,
+			# 	subject=template.subject,
+			# 	message=frappe.render_template(template.response, context),
+			# 	reference_doctype=interview.doctype,
+			# 	reference_name=interview.name,
+			# )
 			interview.db_set("questionnaire_email_sent", 1)
 			interview.notify_update()
 			email_success.append(email)

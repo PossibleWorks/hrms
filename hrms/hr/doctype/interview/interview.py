@@ -98,20 +98,22 @@ class Interview(Document):
 		recipients = get_recipients(self.name)
 
 		try:
-			frappe.sendmail(
-				recipients=recipients,
-				subject=_("Interview: {0} Rescheduled").format(self.name),
-				message=_("Your Interview session is rescheduled from {0} {1} - {2} to {3} {4} - {5}").format(
-					original_date,
-					original_from_time,
-					original_to_time,
-					self.scheduled_on,
-					self.from_time,
-					self.to_time,
-				),
-				reference_doctype=self.doctype,
-				reference_name=self.name,
-			)
+			# Email sending disabled
+			# frappe.sendmail(
+			# 	recipients=recipients,
+			# 	subject=_("Interview: {0} Rescheduled").format(self.name),
+			# 	message=_("Your Interview session is rescheduled from {0} {1} - {2} to {3} {4} - {5}").format(
+			# 		original_date,
+			# 		original_from_time,
+			# 		original_to_time,
+			# 		self.scheduled_on,
+			# 		self.from_time,
+			# 		self.to_time,
+			# 	),
+			# 	reference_doctype=self.doctype,
+			# 	reference_name=self.name,
+			# )
+			pass
 		except Exception:
 			frappe.msgprint(
 				_(
@@ -246,14 +248,15 @@ def send_interview_reminder():
 		message = frappe.render_template(interview_template.response, context)
 		recipients = get_recipients(doc.name)
 
-		frappe.sendmail(
-			sender=reminder_settings.hiring_sender_email,
-			recipients=recipients,
-			subject=interview_template.subject,
-			message=message,
-			reference_doctype=doc.doctype,
-			reference_name=doc.name,
-		)
+		# Email sending disabled
+		# frappe.sendmail(
+		# 	sender=reminder_settings.hiring_sender_email,
+		# 	recipients=recipients,
+		# 	subject=interview_template.subject,
+		# 	message=message,
+		# 	reference_doctype=doc.doctype,
+		# 	reference_name=doc.name,
+		# )
 
 		doc.db_set("reminded", 1)
 
@@ -297,14 +300,15 @@ def send_daily_feedback_reminder():
 		message = frappe.render_template(interview_feedback_template.response, context)
 
 		if len(recipients):
-			frappe.sendmail(
-				sender=reminder_settings.hiring_sender_email,
-				recipients=recipients,
-				subject=interview_feedback_template.subject,
-				message=message,
-				reference_doctype="Interview",
-				reference_name=interview,
-			)
+			# Email sending disabled
+			# frappe.sendmail(
+			# 	sender=reminder_settings.hiring_sender_email,
+			# 	recipients=recipients,
+			# 	subject=interview_feedback_template.subject,
+			# 	message=message,
+			# 	reference_doctype="Interview",
+			# 	reference_name=interview,
+			# )
 
 
 @frappe.whitelist()
