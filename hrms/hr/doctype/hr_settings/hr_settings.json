@@ -67,7 +67,7 @@
    "label": "Retirement Age (In Years)"
   },
   {
-   "default": "Naming Series",
+   "default": "Employee Number",
    "description": "Employee records are created using the selected option",
    "fieldname": "emp_created_by",
    "fieldtype": "Select",
@@ -150,13 +150,13 @@
    "label": "Reminders"
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "send_holiday_reminders",
    "fieldtype": "Check",
    "label": "Holidays"
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "send_work_anniversary_reminders",
    "fieldtype": "Check",
    "label": "Work Anniversaries "
@@ -171,7 +171,7 @@
    "options": "Weekly\nMonthly"
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "send_birthday_reminders",
    "fieldtype": "Check",
    "label": "Birthdays"
