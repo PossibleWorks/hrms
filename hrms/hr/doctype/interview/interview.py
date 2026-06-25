@@ -309,6 +309,7 @@ def send_daily_feedback_reminder():
 			# 	reference_doctype="Interview",
 			# 	reference_name=interview,
 			# )
+			pass
 
 
 @frappe.whitelist()

@@ -142,6 +142,7 @@ def send_birthday_reminder(recipients, reminder_text, birthday_persons, message,
 	# 	),
 	# 	header=_("Birthday Reminder 🎂"),
 	# )
+	pass
 
 
 def get_employees_who_are_born_today():
@@ -287,6 +288,7 @@ def send_work_anniversary_reminder(
 	# 	),
 	# 	header=_("Work Anniversary Reminder"),
 	# )
+	pass
 
 
 def get_sender_email() -> str | None:
