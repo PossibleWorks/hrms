@@ -19,27 +19,29 @@ class DailyWorkSummary(Document):
 		)
 
 		self.db_set("email_sent_to", "\n".join(emails))
-		frappe.sendmail(
-			recipients=emails,
-			message=dws_group.message,
-			subject=dws_group.subject,
-			reference_doctype=self.doctype,
-			reference_name=self.name,
-			reply_to=incoming_email_account,
-		)
+		# Email sending disabled
+		# frappe.sendmail(
+		# 	recipients=emails,
+		# 	message=dws_group.message,
+		# 	subject=dws_group.subject,
+		# 	reference_doctype=self.doctype,
+		# 	reference_name=self.name,
+		# 	reply_to=incoming_email_account,
+		# )
 
 	def send_summary(self):
 		"""Send summary of all replies. Called at midnight"""
 		args = self.get_message_details()
 		emails = get_user_emails_from_group(self.daily_work_summary_group)
-		frappe.sendmail(
-			recipients=emails,
-			template="daily_work_summary",
-			args=args,
-			subject=_(self.daily_work_summary_group),
-			reference_doctype=self.doctype,
-			reference_name=self.name,
-		)
+		# Email sending disabled
+		# frappe.sendmail(
+		# 	recipients=emails,
+		# 	template="daily_work_summary",
+		# 	args=args,
+		# 	subject=_(self.daily_work_summary_group),
+		# 	reference_doctype=self.doctype,
+		# 	reference_name=self.name,
+		# )
 
 		self.db_set("status", "Sent")
 

@@ -116,18 +116,53 @@ class EmployeeCheckin(Document):
 		if not assignment_locations:
 			return
 
-		checkin_radius, latitude, longitude = frappe.db.get_value(
-			"Shift Location", assignment_locations[0], ["checkin_radius", "latitude", "longitude"]
-		)
-		if checkin_radius <= 0:
+		shift_location_name = assignment_locations[0]
+		shift_location = frappe.get_doc("Shift Location", shift_location_name)
+
+		# Build list of all zones to check: primary zone + additional zones
+		zones = []
+		if shift_location.checkin_radius and shift_location.checkin_radius > 0:
+			zones.append({
+				"label": shift_location.location_name or shift_location_name,
+				"latitude": shift_location.latitude,
+				"longitude": shift_location.longitude,
+				"checkin_radius": shift_location.checkin_radius,
+			})
+
+		for zone in shift_location.get("custom_additional_zones") or []:
+			if zone.checkin_radius and zone.checkin_radius > 0 and zone.latitude and zone.longitude:
+				zones.append({
+					"label": zone.label or zone.name,
+					"latitude": zone.latitude,
+					"longitude": zone.longitude,
+					"checkin_radius": zone.checkin_radius,
+				})
+
+		if not zones:
 			return
 
-		distance = get_distance_between_coordinates(latitude, longitude, self.latitude, self.longitude)
-		if distance > checkin_radius:
-			frappe.throw(
-				_("You must be within {0} meters of your shift location to check in.").format(checkin_radius),
-				exc=CheckinRadiusExceededError,
-			)
+		# Allow check-in if within radius of ANY zone; track closest for error message
+		min_distance = None
+		closest_zone = None
+		for zone in zones:
+			distance = round(get_distance_between_coordinates(
+				zone["latitude"], zone["longitude"], self.latitude, self.longitude
+			))
+			if distance <= zone["checkin_radius"]:
+				return
+			if min_distance is None or distance < min_distance:
+				min_distance = distance
+				closest_zone = zone
+
+		# Outside all zones — tell employee how far they are and how much closer they need to move
+		need_to_move = min_distance - closest_zone["checkin_radius"]
+		frappe.throw(
+			_(
+				"You are {0}m away from the nearest check-in zone (allowed radius: {1}m). "
+				"Move {2}m closer to check in."
+			).format(min_distance, closest_zone["checkin_radius"], need_to_move),
+			exc=CheckinRadiusExceededError,
+		)
 
 
 @frappe.whitelist()

@@ -28,3 +28,39 @@ frappe.ui.form.on("Shift Location", {
 		hrms.fetch_geolocation(frm);
 	},
 });
+
+frappe.ui.form.on("Shift Location Zone", {
+	fetch_geolocation: (frm, cdt, cdn) => {
+		if (!navigator.geolocation) {
+			frappe.msgprint({
+				message: __("Geolocation is not supported by your current browser"),
+				title: __("Geolocation Error"),
+				indicator: "red",
+			});
+			return;
+		}
+
+		frappe.dom.freeze(__("Fetching your geolocation") + "...");
+
+		navigator.geolocation.getCurrentPosition(
+			(position) => {
+				frappe.dom.unfreeze();
+				frappe.model.set_value(cdt, cdn, "latitude", position.coords.latitude);
+				frappe.model.set_value(cdt, cdn, "longitude", position.coords.longitude);
+				frappe.show_alert({
+					message: __("Location fetched successfully"),
+					indicator: "green",
+				});
+			},
+			(error) => {
+				frappe.dom.unfreeze();
+				let msg = __("Unable to retrieve your location");
+				if (error) {
+					msg += "<br><br>" + __("ERROR({0}): {1}", [error.code, error.message]);
+				}
+				frappe.msgprint({ message: msg, title: __("Geolocation Error"), indicator: "red" });
+			},
+			{ enableHighAccuracy: true, timeout: 10000 },
+		);
+	},
+});

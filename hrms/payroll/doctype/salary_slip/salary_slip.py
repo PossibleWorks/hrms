@@ -2176,21 +2176,23 @@ class SalarySlip(TransactionBase):
 				).format(payroll_settings.password_policy)
 
 		if receiver:
-			email_args = {
-				"sender": payroll_settings.sender_email,
-				"recipients": [receiver],
-				"message": message,
-				"subject": subject,
-				"attachments": [
-					frappe.attach_print(self.doctype, self.name, file_name=self.name, password=password)
-				],
-				"reference_doctype": self.doctype,
-				"reference_name": self.name,
-			}
-			if not frappe.flags.in_test:
-				enqueue(method=frappe.sendmail, queue="short", timeout=300, is_async=True, **email_args)
-			else:
-				frappe.sendmail(**email_args)
+			# Email sending disabled
+			# email_args = {
+			# 	"sender": payroll_settings.sender_email,
+			# 	"recipients": [receiver],
+			# 	"message": message,
+			# 	"subject": subject,
+			# 	"attachments": [
+			# 		frappe.attach_print(self.doctype, self.name, file_name=self.name, password=password)
+			# 	],
+			# 	"reference_doctype": self.doctype,
+			# 	"reference_name": self.name,
+			# }
+			# if not frappe.flags.in_test:
+			# 	enqueue(method=frappe.sendmail, queue="short", timeout=300, is_async=True, **email_args)
+			# else:
+			# 	frappe.sendmail(**email_args)
+			pass
 		else:
 			msgprint(_("{0}: Employee email not found, hence email not sent").format(self.employee_name))
 

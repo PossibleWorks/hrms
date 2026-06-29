@@ -63,22 +63,23 @@ def send_holidays_reminder_in_advance(employee, holidays):
 	frequency = frappe.db.get_single_value("HR Settings", "frequency")
 	sender_email = get_sender_email()
 	email_header = _("Holidays this Month.") if frequency == "Monthly" else _("Holidays this Week.")
-	frappe.sendmail(
-		sender=sender_email,
-		recipients=[employee_email],
-		subject=_("Upcoming Holidays Reminder"),
-		template="holiday_reminder",
-		args=dict(
-			reminder_text=_("Hey {}! This email is to remind you about the upcoming holidays.").format(
-				employee_doc.get("first_name")
-			),
-			message=_("Below is the list of upcoming holidays for you:"),
-			advance_holiday_reminder=True,
-			holidays=holidays,
-			frequency=frequency[:-2],
-		),
-		header=email_header,
-	)
+	# Email sending disabled
+	# frappe.sendmail(
+	# 	sender=sender_email,
+	# 	recipients=[employee_email],
+	# 	subject=_("Upcoming Holidays Reminder"),
+	# 	template="holiday_reminder",
+	# 	args=dict(
+	# 		reminder_text=_("Hey {}! This email is to remind you about the upcoming holidays.").format(
+	# 			employee_doc.get("first_name")
+	# 		),
+	# 		message=_("Below is the list of upcoming holidays for you:"),
+	# 		advance_holiday_reminder=True,
+	# 		holidays=holidays,
+	# 		frequency=frequency[:-2],
+	# 	),
+	# 	header=email_header,
+	# )
 
 
 # ------------------
@@ -128,18 +129,20 @@ def get_birthday_reminder_text_and_message(birthday_persons):
 
 
 def send_birthday_reminder(recipients, reminder_text, birthday_persons, message, sender=None):
-	frappe.sendmail(
-		sender=sender,
-		recipients=recipients,
-		subject=_("Birthday Reminder"),
-		template="birthday_reminder",
-		args=dict(
-			reminder_text=reminder_text,
-			birthday_persons=birthday_persons,
-			message=message,
-		),
-		header=_("Birthday Reminder 🎂"),
-	)
+	# Email sending disabled
+	# frappe.sendmail(
+	# 	sender=sender,
+	# 	recipients=recipients,
+	# 	subject=_("Birthday Reminder"),
+	# 	template="birthday_reminder",
+	# 	args=dict(
+	# 		reminder_text=reminder_text,
+	# 		birthday_persons=birthday_persons,
+	# 		message=message,
+	# 	),
+	# 	header=_("Birthday Reminder 🎂"),
+	# )
+	pass
 
 
 def get_employees_who_are_born_today():
@@ -272,18 +275,20 @@ def send_work_anniversary_reminder(
 	message,
 	sender=None,
 ):
-	frappe.sendmail(
-		sender=sender,
-		recipients=recipients,
-		subject=_("Work Anniversary Reminder"),
-		template="anniversary_reminder",
-		args=dict(
-			reminder_text=reminder_text,
-			anniversary_persons=anniversary_persons,
-			message=message,
-		),
-		header=_("Work Anniversary Reminder"),
-	)
+	# Email sending disabled
+	# frappe.sendmail(
+	# 	sender=sender,
+	# 	recipients=recipients,
+	# 	subject=_("Work Anniversary Reminder"),
+	# 	template="anniversary_reminder",
+	# 	args=dict(
+	# 		reminder_text=reminder_text,
+	# 		anniversary_persons=anniversary_persons,
+	# 		message=message,
+	# 	),
+	# 	header=_("Work Anniversary Reminder"),
+	# )
+	pass
 
 
 def get_sender_email() -> str | None:

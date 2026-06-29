@@ -723,13 +723,15 @@ class LeaveApplication(Document, PWANotificationsMixin):
 			sender["full_name"] = get_fullname(sender["email"])
 
 			try:
-				frappe.sendmail(
-					recipients=contact,
-					sender=sender["email"],
-					subject=args.subject,
-					message=args.message,
-				)
-				frappe.msgprint(_("Email sent to {0}").format(contact))
+				# Email sending disabled
+				# frappe.sendmail(
+				# 	recipients=contact,
+				# 	sender=sender["email"],
+				# 	subject=args.subject,
+				# 	message=args.message,
+				# )
+				# frappe.msgprint(_("Email sent to {0}").format(contact))
+				pass
 			except frappe.OutgoingEmailError:
 				pass
 
