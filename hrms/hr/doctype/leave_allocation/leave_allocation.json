@@ -21,6 +21,7 @@
   "carry_forward",
   "unused_leaves",
   "total_leaves_allocated",
+  "effective_allocation",
   "total_leaves_encashed",
   "column_break_10",
   "compensatory_request",
@@ -134,11 +135,21 @@
   },
   {
    "allow_on_submit": 1,
+   "description": "Original value at time of allocation. Does not reflect subsequent leave adjustments — see Effective Allocation below.",
    "fieldname": "total_leaves_allocated",
    "fieldtype": "Float",
    "label": "Total Leaves Allocated",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Reflects the allocation after all leave adjustments. Recomputed from the leave ledger each time an adjustment is submitted or cancelled.",
+   "fieldname": "effective_allocation",
+   "fieldtype": "Float",
+   "label": "Effective Allocation",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.total_leaves_encashed>0",
