@@ -12,6 +12,7 @@ from frappe.utils import cint, get_datetime
 from hrms.hr.doctype.shift_assignment.shift_assignment import get_actual_start_end_datetime_of_shift
 from hrms.hr.utils import (
 	get_distance_between_coordinates,
+	is_geolocation_tracking_enabled,
 	set_geolocation_from_coordinates,
 	validate_active_employee,
 )
@@ -94,7 +95,7 @@ class EmployeeCheckin(Document):
 			self.overtime_type = shift_actual_timings.overtime_type or None
 
 	def validate_distance_from_shift_location(self):
-		if not frappe.db.get_single_value("HR Settings", "allow_geolocation_tracking"):
+		if not is_geolocation_tracking_enabled(self.employee):
 			return
 
 		if not (self.latitude or self.longitude):
