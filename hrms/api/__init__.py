@@ -81,10 +81,13 @@ def get_all_employees() -> list[dict]:
 # HR Settings
 @frappe.whitelist()
 def get_hr_settings() -> dict:
+	from hrms.hr.utils import is_geolocation_tracking_enabled
+
 	settings = frappe.db.get_singles_dict("HR Settings", cast=True)
+	employee = frappe.db.get_value("Employee", {"user_id": frappe.session.user})
 	return frappe._dict(
 		allow_employee_checkin_from_mobile_app=settings.allow_employee_checkin_from_mobile_app,
-		allow_geolocation_tracking=settings.allow_geolocation_tracking,
+		allow_geolocation_tracking=is_geolocation_tracking_enabled(employee),
 	)
 
 

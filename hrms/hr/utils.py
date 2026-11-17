@@ -964,6 +964,18 @@ def notify_bulk_action_status(doctype: str, failure: list, success: list) -> Non
 	)
 
 
+def is_geolocation_tracking_enabled(employee: str | None) -> bool:
+	"""HR Settings is the site-wide master switch; possibleworks adds a per-employee opt-in on top."""
+	if not frappe.db.get_single_value("HR Settings", "allow_geolocation_tracking"):
+		return False
+
+	# sites without the possibleworks field keep the stock site-wide behaviour
+	if not frappe.get_meta("Employee").has_field("custom_geolocation_checkin"):
+		return True
+
+	return bool(employee and frappe.db.get_value("Employee", employee, "custom_geolocation_checkin"))
+
+
 @frappe.whitelist()
 def set_geolocation_from_coordinates(doc):
 	if not frappe.db.get_single_value("HR Settings", "allow_geolocation_tracking"):
