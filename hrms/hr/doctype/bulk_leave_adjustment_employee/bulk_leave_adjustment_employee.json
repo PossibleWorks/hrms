@@ -1,0 +1,105 @@
+{
+ "actions": [],
+ "creation": "2025-05-27 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "leave_type",
+  "leave_allocation",
+  "adjustment_type",
+  "leaves_to_adjust",
+  "leave_adjustment",
+  "status",
+  "error_message"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "leave_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Leave Type",
+   "options": "Leave Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "leave_allocation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Leave Allocation",
+   "options": "Leave Allocation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "adjustment_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Adjustment Type",
+   "options": "\nAllocate\nReduce",
+   "reqd": 1
+  },
+  {
+   "fieldname": "leaves_to_adjust",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Leaves to Adjust",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "leave_adjustment",
+   "fieldtype": "Link",
+   "label": "Leave Adjustment",
+   "no_copy": 1,
+   "options": "Leave Adjustment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "no_copy": 1,
+   "options": "\nPending\nSuccess\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Small Text",
+   "label": "Error Message",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HR",
+ "name": "Bulk Leave Adjustment Employee",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
